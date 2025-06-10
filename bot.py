@@ -13,23 +13,25 @@ ENDPOINT = 'https://storage.yandexcloud.net'
 
 
 def get_secrets_from_lockbox(secret_id: str):
-    sdk = SDK()  # Автоматически использует IAM-сервисный аккаунт внутри ВМ
-    client = sdk.client('lockbox_payload')
-    response = client.get_payload(secret_id=secret_id)
+    sdk = SDK()
+    payload_service = sdk.client("payload")  # ← Краткое имя сервиса
+
+    response = payload_service.get_payload(secret_id=secret_id)
 
     access_key = None
     secret_key = None
 
     for entry in response.entries:
-        if entry.key == 'access_key':
+        if entry.key == "access_key":
             access_key = entry.text_value
-        elif entry.key == 'secret_key':
+        elif entry.key == "secret_key":
             secret_key = entry.text_value
 
     if not access_key or not secret_key:
-        raise ValueError("Ключи доступа не найдены в Lockbox")
+        raise RuntimeError("access_key или secret_key не найдены в Lockbox")
 
     return access_key, secret_key
+
 
 
 def get_random_line_from_s3(s3, filename):
