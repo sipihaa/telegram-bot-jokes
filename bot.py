@@ -1,5 +1,6 @@
 import boto3
 import random
+import re
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
@@ -14,22 +15,28 @@ s3 = session.client(
 
 BUCKET_NAME = 'facts-jokes-for-tg-bot'
 
-def get_random_line_from_file(filename):
+def get_random_fact_from_file(filename):
     obj = s3.get_object(Bucket=BUCKET_NAME, Key=filename)
     lines = obj['Body'].read().decode('utf-8').split('\n')
     lines = [line.strip() for line in lines if line.strip()]
     return random.choice(lines)
 
+def get_random_joke_from_file(filename):
+    obj = s3.get_object(Bucket=BUCKET_NAME, Key=filename)
+    text = obj['Body'].read().decode('utf-8')
+    jokes = [joke.strip() for joke in re.split(r'\n\s*\n\s*\n+', text) if joke.strip()]
+    return random.choice(jokes)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Привет! Я Бот Настроения.\nКоманды:\n/fact — интересный факт\n/joke — анекдот")
 
 async def fact(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    fact = get_random_line_from_file('facts.txt')
+    fact = get_random_fact_from_file('facts.txt')
     await update.message.reply_text(f"🧠 Факт: {fact}")
 
 async def joke(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    joke = get_random_line_from_file('jokes.txt')
-    await update.message.reply_text(f"😂 Анекдот: {joke}")
+    joke = get_random_joke_from_file('jokes.txt')
+    await update.message.reply_text(f"😂 Анекдот:\n{joke}")
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token("8076838273:AAEezwxmb67RDQ8hDLVCRZEKBQLPagEBD_E").build()
