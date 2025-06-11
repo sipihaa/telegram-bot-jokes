@@ -92,6 +92,7 @@ if __name__ == '__main__':
     SECRET_ID = 'e6qnpent8p9mhe23ph81'
     TOKEN_KEY = 'TG_TOKEN'
     IAM_TOKEN = get_iam_token_from_metadata()
+    print(IAM_TOKEN)
     bot_token = get_bot_token_from_lockbox(SECRET_ID, TOKEN_KEY, IAM_TOKEN)
     application = ApplicationBuilder().token(bot_token).build()
 
